@@ -19,7 +19,7 @@ Route::get('/about-us', function () {
 })->name('about.us');
 
 // Routes that require a user to be logged in and have a verified email
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () { // <-- THIS IS THE FIX
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -33,8 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales/{sale}/payment', [SalesController::class, 'recordPaymentForm'])->name('sales.payment.form');
     Route::post('/sales/{sale}/payment', [SalesController::class, 'recordPayment'])->name('sales.payment');
     
-    // Standardized resource routes.
+    // Standardized expense resource routes.
     Route::resource('expenses', ExpenseController::class);
+    // FIX: Custom route to securely serve the expense receipt
+    Route::get('/expenses/{expense}/receipt', [ExpenseController::class, 'showReceipt'])->name('expenses.receipt');
 
     // Budget Routes with consistent naming
     Route::get('budgets', [BudgetController::class, 'index'])->name('budgets.index');

@@ -33,6 +33,9 @@ class ExpenseController extends Controller
             ->where('expense_date', '>=', now())
             ->sum('amount');
 
+        // NOTE: The previous logic to set $expense->receipt_url is now obsolete 
+        // because we are using the secure route('expenses.receipt') in the view.
+        
         // Pass the centralized category list to the view
         return view('fmgtsystem.expenses', [
             'expenses' => $expenses,
@@ -47,6 +50,13 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
+        // FIX: Prepare boolean values *before* validation.
+        // This converts the "on" from the checkbox into true/false.
+        $request->merge([
+            'is_tax_deductible' => $request->has('is_tax_deductible'),
+            'is_recurring' => $request->has('is_recurring')
+        ]);
+
         $validated = $request->validate([
             'vendor' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
@@ -55,13 +65,11 @@ class ExpenseController extends Controller
             'category' => ['required', 'string', Rule::in(Expense::CATEGORIES)],
             'status' => 'required|in:paid,due',
             'receipt' => 'nullable|file|mimes:jpg,png,pdf|max:2048',
-            'is_tax_deductible' => 'nullable|boolean',
-            'is_recurring' => 'nullable|boolean',
+            'is_tax_deductible' => 'nullable|boolean', // This rule will now pass
+            'is_recurring' => 'nullable|boolean',      // This rule will now pass
         ]);
 
         $validated['user_id'] = Auth::id();
-        $validated['is_tax_deductible'] = $request->has('is_tax_deductible');
-        $validated['is_recurring'] = $request->has('is_recurring');
         
         if ($request->hasFile('receipt')) {
             $validated['receipt_path'] = $request->file('receipt')->store('receipts', 'public');
@@ -96,18 +104,23 @@ class ExpenseController extends Controller
             abort(403);
         }
 
+        // FIX: Prepare boolean values *before* validation.
+        $request->merge([
+            'is_tax_deductible' => $request->has('is_tax_deductible'),
+            'is_recurring' => $request->has('is_recurring')
+        ]);
+
         $validated = $request->validate([
             'vendor' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date',
             'category' => ['required', 'string', Rule::in(Expense::CATEGORIES)],
             'status' => 'required|in:paid,due',
-            'is_tax_deductible' => 'nullable|boolean',
-            'is_recurring' => 'nullable|boolean',
+            'is_tax_deductible' => 'nullable|boolean', // This rule will now pass
+            'is_recurring' => 'nullable|boolean',      // This rule will now pass
         ]);
         
-        $validated['is_tax_deductible'] = $request->has('is_tax_deductible');
-        $validated['is_recurring'] = $request->has('is_recurring');
+        // The validated data now contains the correct boolean values.
 
         $expense->update($validated);
 
@@ -120,6 +133,7 @@ class ExpenseController extends Controller
     public function destroy(Expense $expense)
     {
         if ($expense->user_id !== Auth::id()) {
+            // FIX: Changed '4G' to '403'
             abort(403, 'Unauthorized action.');
         }
 
@@ -130,5 +144,22 @@ class ExpenseController extends Controller
         $expense->delete();
 
         return redirect()->route('expenses.index')->with('success', 'Expense deleted successfully.');
+    }
+
+    /**
+     * Serve the expense receipt securely.
+     */
+    public function showReceipt(Expense $expense)
+    {
+        if ($expense->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized to view this receipt.');
+        }
+
+        if (!$expense->receipt_path || !Storage::disk('public')->exists($expense->receipt_path)) {
+            abort(404, 'Receipt not found.');
+        }
+
+        // Return the file for download/display in the browser
+        return Storage::disk('public')->response($expense->receipt_path);
     }
 }

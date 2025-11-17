@@ -1,3 +1,37 @@
+/* Keep the existing @tailwind directives at the top */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom Navigation Component Styles */
+@layer components {
+  /* The main navigation bar container */
+  .main-nav {
+    @apply bg-gradient-to-r from-emerald-600 via-teal-500 to-sky-600 shadow-lg;
+  }
+
+  /* The user dropdown button in the top right */
+  .main-nav-user-button {
+    @apply inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-yellow-300 bg-transparent hover:text-yellow-200 focus:outline-none transition ease-in-out duration-150;
+  }
+
+  /* Styles for the desktop navigation links with new hover effects */
+  .main-nav-link {
+    @apply inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-200 transform transition-all duration-300 ease-in-out hover:text-white hover:bg-white/10 hover:scale-105 focus:outline-none focus:text-white focus:bg-white/10;
+  }
+
+  /* Active link style with an inner shadow to make it pop */
+  .main-nav-link-active {
+    @apply inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-white bg-teal-600/50 shadow-inner focus:outline-none transition-all duration-300 ease-in-out;
+  }
+
+  /* Styles for the mobile (responsive) navigation links */
+  .responsive-nav-link {
+      @apply block w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-start text-base font-medium text-gray-200 hover:text-white hover:bg-white/10 hover:border-gray-300 focus:outline-none focus:text-white focus:bg-white/10 focus:border-gray-300 transition duration-150 ease-in-out;
+  }
+
+  .responsive-nav-link-active {
+      @apply block w-full ps-3 pe-4 py-2 border-l-4 border-sky-400 text-start text-base font-medium text-white bg-teal-600/50 focus:outline-none focus:text-white focus:bg-teal-700/60 focus:border-sky-500 transition duration-150 ease-in-out;
+  }
+}
+

@@ -9,6 +9,8 @@ export default {
         './resources/views/**/*.blade.php',
     ],
 
+    darkMode: 'class', // <-- ADD THIS LINE
+
     theme: {
         extend: {
             fontFamily: {

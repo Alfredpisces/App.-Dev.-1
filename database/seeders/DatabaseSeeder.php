@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
-class TestFinancialDataSeeder extends Seeder
+class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
